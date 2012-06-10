@@ -59,7 +59,14 @@ sub find_devices_by_idVendor_and_idProduct {
 sub bus_id_and_device_id_for_device_name {
   my ($class,$device_name) = @_;
 
-  
+  my @pairs = $class->_find_tempers();
+
+  foreach my $pair (@pairs) {
+    my ($busnum,$devicenum,$device) = @$pair;
+    next unless $device->{name} eq $device_name;
+    return $pair;
+  }
+  return undef;
 }
 
 my $temperA = bless {
@@ -87,6 +94,17 @@ my $hub_idProduct = '0608';
 sub find_tempers {
   my ($class) = @_;
 
+  my @pairs = $class->_find_tempers();
+
+  foreach my $pair (@pairs) {
+    my ($busnum,$devicenum) = @$pair;
+    print "$busnum $devicenum\n";
+  }
+}
+
+sub _find_tempers {
+  my ($class) = @_;
+
   my @devices = $class->find_devices_by_idVendor_and_idProduct($basepath,$hub_idVendor,$hub_idProduct);
 #  print STDERR "Got (@devices)\n";
   die "Found more than one device matching Vendor/Product $hub_idVendor:$hub_idProduct)" if @devices > 1;
@@ -100,10 +118,7 @@ sub find_tempers {
   }
 
   my @pairs = &bus_and_dev_nums_from_for_device_and_tree($basepath,$device,$device_tree);
-  foreach my $pair (@pairs) {
-    my ($busnum,$devicenum) = @$pair;
-    print "$busnum $devicenum\n";
-  }
+  return @pairs;
 }
 
 sub bus_and_dev_nums_from_for_device_and_tree {
@@ -130,7 +145,7 @@ sub bus_and_dev_nums_from_for_device_and_tree {
       my $busnum = &slurp("$basepath/$path/busnum");
       chomp $busnum;
 #      print "$busnum $devnum\n";
-      push @pairs,[$busnum,$devnum];
+      push @pairs,[$busnum,$devnum,$tree->{$key}];
       next;
     }
     push @pairs, &bus_and_dev_nums_from_for_device_and_tree($basepath,$path,$tree->{$key});

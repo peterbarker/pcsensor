@@ -6,3 +6,8 @@ use warnings;
 use FindTempers;
 
 FindTempers->find_tempers();
+
+# my $x = FindTempers->bus_id_and_device_id_for_device_name('Temper A');
+# die "no entry" unless $x;
+# my ($busnum,$devnum,$stuff) = @$x;
+# print "busnum=$busnum devnum=$devnum\n";
